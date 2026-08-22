@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bin｜四象限市場溫度</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* 淺色系設定 */
+:root {
+  --bg:        #e2e8f0;  /* 全局背景：太空淺灰藍 */
+  --bg2:       #f8fafc;  /* 大區塊背景：微灰白 */
+  --bg3:       #ffffff;  /* 卡片背景：純白 */
+  --border:    #cbd5e1;  /* 線條顏色 */
+  --text:      #1e293b;  /* 主要文字：深藍黑 */
+  --text2:     #475569;  /* 次要文字：中深灰色 */
+  --text3:     #64748b;  /* 輔助文字：中灰色 */
+  --up:        #dc2626;  /* 警示紅 */
+  --down:      #16a34a;  /* 深翠綠 */
+  --trend:     #ea580c;  /* 趨勢橘 */
+  --sentiment: #7c3aed;  /* 情緒紫 */
+  --liquidity: #0284c7;  /* 流動藍 */
+  --valuation: #b91c1c;  /* 估值紅 */
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Noto Sans TC', sans-serif;
+  --r: 8px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:var(--sans); font-size:14px; min-height:100vh; }
+
+/* Header */
+.hdr { 
+  background: var(--bg2); 
+  border-bottom: 1px solid var(--border); 
+  padding: 12px 16px; 
+  display: flex; 
+  align-items: flex-start; 
+  justify-content: space-between; 
+  position: sticky; 
+  top: 0; 
+  z-index: 99; 
+}
+.hdr-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  padding-right: 12px;
+}
+.hdr-title { 
+  font-size: 15px; 
+  font-weight: 500; 
+  color: var(--text2); 
+  line-height: 1.3; 
+  text-align: left; 
+}
+.hdr-title b { color: var(--text); font-weight: 700; }
+.hdr-right { 
+  display: flex; 
+  align-items: center; 
+  flex-shrink: 0; 
+}
+.upd { 
+  font-family: var(--mono); 
+  font-size: 11px; 
+  color: var(--text3); 
+  text-align: left; 
+}
+.btn { 
+  background: var(--bg3); 
+  border: 1px solid var(--border); 
+  color: var(--text2); 
+  padding: 6px 14px; 
+  border-radius: 4px; 
+  cursor: pointer; 
+  font-size: 12px; 
+  font-family: var(--sans); 
+  font-weight: 500; 
+}
+.btn:hover { color: var(--text); background: var(--bg); }
+
+@media(min-width: 768px) {
+  .hdr { align-items: center; }
+  .hdr-left { flex-direction: row; align-items: center; gap: 14px; }
+  .hdr-title { font-size: 14px; }
+}
+
+/* Layout */
+.wrap { max-width:1100px; margin:0 auto; padding:14px; }
+.mkts { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:14px; }
+@media(min-width:500px){ .mkts { grid-template-columns:repeat(3,1fr); } }
+@media(min-width:800px){ .mkts { grid-template-columns:repeat(6,1fr); } }
+.quads { display:grid; grid-template-columns:1fr; gap:14px; }
+@media(min-width:768px){ .quads { grid-template-columns:1fr 1fr; } }
+
+/* Market bar card */
+.mc { background:var(--bg2); border:1px solid var(--border); border-radius:var(--r); padding:10px 12px; }
+.mc-lbl { font-size:11px; color:var(--text2); margin-bottom:3px; }
+.mc-val { font-family:var(--mono); font-size:17px; font-weight:600; }
+.mc-chg { font-family:var(--mono); font-size:11px; margin-top:2px; }
+
+/* Quadrant */
+.qd { background:var(--bg2); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; }
+.qd-hdr { padding:9px 13px; display:flex; align-items:center; gap:7px; border-bottom:1px solid var(--border); }
+.qd-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.qd-ttl { font-size: 15px; font-weight: 700; letter-spacing: .05em; }
+.qd-sub { font-size: 12px; color: var(--text2); margin-left: auto; }
+.sec-lbl { 
+  font-size: 11px; 
+  font-weight: 600; 
+  color: var(--text2); 
+  letter-spacing: .1em; 
+  text-transform: uppercase; 
+  padding: 8px 13px; 
+  background: #ffffff; 
+  border-top: 1px solid var(--border); 
+  border-bottom: 1px solid var(--border); 
+}
+.qd-hdr + .sec-lbl { border-top: none !important; }
+.cards { padding:10px; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.cards.cols3 { grid-template-columns:1fr 1fr 1fr; }
+
+/* Card */
+.card { background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:9px 11px; min-height:72px; display:flex; flex-direction:column; justify-content:space-between; }
+.card.full { grid-column:span 2; }
+.card-lbl { font-size:10px; color:var(--text2); margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.card-val { font-family:var(--mono); font-size:19px; font-weight:600; line-height:1; }
+.card-val.sm { font-size:15px; }
+.card-chg { font-family:var(--mono); font-size:10px; margin-top:4px; color:var(--text3); }
+.ma-note { font-family:var(--mono); font-size:10px; color:var(--text3); margin-top:2px; }
+
+/* Colors */
+.up { color:var(--up); }
+.dn { color:var(--down); }
+.neu { color:var(--text3); }
+
+/* Badge */
+.bx { display:inline-block; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; margin-left:5px; vertical-align:middle; letter-spacing: 0.05em; }
+.bx-hot  { background:#fee2e2; color:#991b1b; }
+.bx-warm { background:#fef3c7; color:#92400e; }
+.bx-ok   { background:#dcfce7; color:#166534; }
+.bx-cold { background:#dbeafe; color:#1e40af; }
+.bx-grey { background:#f1f5f9; color:#475569; }
+
+/* 估值底部卡片文字格式 */
+#c-buffett-tw .card-val, 
+#c-buffett-us .card-val {
+  font-family: var(--mono) !important;
+  font-size: 19px !important;
+  font-weight: 600 !important;
+}
+
+/* Loading / Error */
+.loading { display:flex; align-items:center; justify-content:center; min-height:60vh; flex-direction:column; gap:12px; color:var(--text3); }
+.spin { width:30px; height:30px; border:2px solid var(--border); border-top-color:#4a9eff; border-radius:50%; animation:spin .7s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.err { background:rgba(220,38,38,.08); border:1px solid rgba(220,38,38,.2); border-radius:var(--r); padding:20px; text-align:center; color:#f87171; font-size:13px; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-title"><b>Bin</b>｜家庭投資決策系統 × 四象限市場溫度</div>
+    <span class="upd" id="upd">—</span>
+  </div>
+  <div class="hdr-right">
+    <button class="btn" onclick="load()">↻ 更新</button>
+  </div>
+</div>
+
+<div id="loading" class="loading"><div class="spin"></div><span>讀取資料中…</span></div>
+
+<div id="app" style="display:none">
+<div class="wrap">
+
+  <!-- 大盤快覽 -->
+  <div class="mkts" id="mkts"></div>
+
+  <div class="quads">
+
+    <!-- 趨勢 -->
+    <div class="qd">
+      <div class="qd-hdr">
+        <div class="qd-dot" style="background:var(--trend)"></div>
+        <div class="qd-ttl" style="color:var(--trend)">趨勢 Trend</div>
+        <div class="qd-sub">市場現在是在上升還是下跌？</div>
+      </div>
+      <div class="sec-lbl">台股年乖離率</div>
+      <div class="cards">
+        <div class="card full" id="c-twii-ma"></div>
+      </div>
+      <div class="sec-lbl">美股年乖離率</div>
+      <div class="cards">
+        <div class="card" id="c-sp500-ma"></div>
+        <div class="card" id="c-nasdaq-ma"></div>
+        <div class="card" id="c-sox-ma"></div>
+        <div class="card" id="c-dji-ma"></div>
+      </div>
+    </div>
+
+    <!-- 情緒 -->
+    <div class="qd">
+      <div class="qd-hdr">
+        <div class="qd-dot" style="background:var(--sentiment)"></div>
+        <div class="qd-ttl" style="color:var(--sentiment)">情緒 Sentiment</div>
+        <div class="qd-sub">投資人現在是怕還是貪？</div>
+      </div>
+      <div class="cards">
+        <div class="card" id="c-vix"></div>
+        <div class="card" id="c-cnn"></div>
+        <div class="card" id="c-put-call"></div>
+        <div class="card" id="c-tx-night"></div>
+        <div class="card" id="c-foreign-oi"></div>
+        <div class="card" id="c-margin-balance"></div>
+      </div>
+    </div>
+
+    <!-- 流動性 -->
+    <div class="qd">
+      <div class="qd-hdr">
+        <div class="qd-dot" style="background:var(--liquidity)"></div>
+        <div class="qd-ttl" style="color:var(--liquidity)">流動性 Liquidity</div>
+        <div class="qd-sub">市場資金寬鬆或緊縮？</div>
+      </div>
+      <div class="cards">
+        <div class="card" id="c-dxy"></div>
+        <div class="card" id="c-tnx"></div>
+        <div class="card" id="c-fed"></div>
+        <div class="card" id="c-usdtwd"></div>
+        <div class="card" id="c-gold"></div>
+        <div class="card" id="c-oil"></div>
+      </div>
+    </div>
+
+    <!-- 估值 -->
+    <div class="qd">
+      <div class="qd-hdr">
+        <div class="qd-dot" style="background:var(--valuation)"></div>
+        <div class="qd-ttl" style="color:var(--valuation)">估值 Valuation</div>
+        <div class="qd-sub">股票到底值不值得買？</div>
+      </div>
+      <div class="cards">
+        <div class="card" id="c-erp"></div>
+        <div class="card" id="c-forward-pe"></div>
+        <div class="card" id="c-shiller"></div>
+        <div class="card" id="c-put-call2"></div>
+        <div class="card" id="c-buffett-tw"></div>
+        <div class="card" id="c-buffett-us"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// 初始化 Supabase 客戶端
+const SUPABASE_URL = 'https://sktrmemtvarutrbcpwij.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iPdnGKeCEfPuH2xZBYK4Sg_G8ivGx1p';
+
+const { createClient } = supabase;
+const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function load() {
+  document.getElementById('loading').style.display = 'flex';
+  document.getElementById('app').style.display     = 'none';
+
+  try {
+    const { data: rows, error } = await _supabase
+      .from('market_metrics')
+      .select('*');
+
+    if (error) throw error;
+    if (!rows || rows.length === 0) throw new Error('資料庫內尚無資料');
+
+    // 1. 完整對照表（涵蓋所有可能出現的中文名稱）
+    const categoryMap = {
+      // 大盤
+      '台股加權指數':            'twii',
+      '台指期盤後':             'tx_night',
+      'S&P 500':                'sp500',
+      'NASDAQ':                 'nasdaq',
+      '費城半導體':              'sox',
+      '道瓊工業':               'dji',
+
+      // 乖離率與均線
+      '台股240MA(年線)':        'twii_bias',
+      '台股240MA乖離率(%)':       'twii_ma',
+      '費半240MA(年線)':        'sox_bias',
+      '費半 240MA(年線)':       'sox_bias',
+      '費半240MA年乖離率(%)':       'sox_ma',
+      'S&P500 240MA(年線)':     'sp500_bias',
+      'S&P500240MA乖離率(%)':    'sp500_ma',
+      'NASDAQ 240MA(年線)':     'nasdaq_bias',
+      'NASDAQ240MA年乖離率(%)':    'nasdaq_ma',
+      '道瓊 240MA(年線)':       'dji_bias',
+      '道瓊240MA年乖離率(%)':       'dji_ma',
+
+      // 情緒
+      'VIX 恐慌指數':            'vix',
+      'CNN恐懼與貪婪指數':       'cnn',
+      'CNN 恐懼與貪婪指數':      'cnn',
+      'Put/Call Ratio':         'put_call',
+      '台指選擇權Put/Call(%)':    'tw_pcr',
+      '外資期貨淨未平倉口數':     'foreign_oi',
+      '外資臺股期貨未平倉淨口數':  'foreign_oi',
+      '融資餘額(億元)':          'margin_balance',
+
+      // 流動性
+      '美元指數':               'dxy',
+      '美債10年期':             'tnx',
+      '聯邦基金利率':            'fed_rate',
+      '聯邦基準利率':            'fed_rate',
+      '美元/台幣匯率':           'usdtwd',
+      '黃金COMEX Gold':         'gold',
+      '原油WTI Crude Oil':      'oil',
+
+      // 估值
+      '股票風險溢酬 ERP':        'erp',
+      'S&P500 Forward PE':      'forward_pe',
+      '遠期本益比 Forward PE':   'shiller', // 綁定資料表最後一列
+      'Shiller CAPE':           'shiller',
+      '台股巴菲特指標':          'buffett_tw',
+      '美股巴菲特指標':          'buffett_us'
+    };
+
+    const formattedData = {};
+    let latestUpdate = '—';
+
+    const cleanNum = (val) => {
+      if (val === null || val === undefined || val === 'EMPTY' || val === '') return null;
+      if (typeof val === 'number') return val;
+      const parsed = parseFloat(String(val).replace(/[^0-9.-]/g, ''));
+      return isNaN(parsed) ? null : parsed;
+    };
+
+    rows.forEach(item => {
+      const key = categoryMap[item.category];
+      if (key) {
+        formattedData[key] = {
+          value: cleanNum(item.value),
+          change: cleanNum(item.change_points),
+          pct: item.change_percent && item.change_percent !== 'EMPTY' ? item.change_percent : null
+        };
+      }
+      if (item.updated_at) latestUpdate = item.updated_at;
+    });
+
+    render(formattedData, latestUpdate);
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display     = 'block';
+
+  } catch(e) {
+    document.getElementById('loading').innerHTML =
+      `<div class="err">❌ 無法載入資料<br><small>${e.message}</small></div>`;
+  }
+}
+
+// 智慧型 MA / 乖離率渲染函式
+function ma(id, data, lbl, spot) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const dbVal = data?.value;
+  
+  if (dbVal === null || dbVal === undefined) {
+    el.innerHTML = `<div class="card-lbl">${lbl}</div><div class="card-val neu">—</div>`;
+    return;
+  }
+
+  let bias = 0;
+  let maText = '';
+
+  // 判斷 dbVal 是 240MA 價格還是直接就是 % 數 (如果比 500 大代表是 240MA 價格)
+  if (spot && dbVal > 500) {
+    bias = ((spot - dbVal) / dbVal) * 100;
+    maText = `240MA ≈ ${Number(dbVal).toLocaleString('zh-TW', {maximumFractionDigits:0})}`;
+  } else {
+    // 否則資料庫內存的就是直接的 % 數
+    bias = dbVal;
+    if (spot) {
+      const calcMA = spot / (1 + bias / 100);
+      maText = `240MA ≈ ${Number(calcMA).toLocaleString('zh-TW', {maximumFractionDigits:0})}`;
+    }
+  }
+  
+  el.innerHTML = `
+    <div class="card-lbl">${lbl}</div>
+    <div>
+      <div class="card-val ${bias >= 0 ? 'up' : 'dn'}">${bias >= 0 ? '+' : ''}${bias.toFixed(2)}%${maB(bias)}</div>
+      ${maText ? `<div class="ma-note">${maText}</div>` : ''}
+    </div>`;
+}
+
+function render(d, upd) {
+  document.getElementById('upd').textContent = upd;
+
+  // 大盤快覽
+  const mkts = [
+    ['twii',     '台股加權'],
+    ['tx_night', '台指期夜盤'],
+    ['sp500',    'S&P 500'],
+    ['nasdaq',   'NASDAQ'],
+    ['sox',      '費城半導體'],
+    ['dji',      '道瓊工業'],
+  ];
+  document.getElementById('mkts').innerHTML = mkts.map(([k, lbl]) => {
+    const v = d[k];
+    return `<div class="mc">
+      <div class="mc-lbl">${lbl}</div>
+      <div class="mc-val ${cls(v?.change)}">${fmt(v?.value)}</div>
+      <div class="mc-chg ${cls(v?.change)}">${fmtChg(v?.change, v?.pct)}</div>
+    </div>`;
+  }).join('');
+
+  // 趨勢
+  ma('c-twii-ma',   d.twii_ma,   '台股年乖離率 (240MA)',  d.twii?.value);
+  ma('c-sp500-ma', d.sp500_ma, 'S&P500 乖離率', d.sp500?.value);
+  ma('c-nasdaq-ma', d.nasdaq_ma, 'NASDAQ 乖離率', d.nasdaq?.value);
+  ma('c-sox-ma', d.sox_ma, '費半 乖離率', d.sox?.value);
+  ma('c-dji-ma', d.dji_ma, '道瓊 乖離率', d.dji?.value);
+
+  // 情緒
+  card('c-vix',      d.vix,      'VIX 恐慌指數',      vixB(d.vix?.value));
+  card('c-cnn',      d.cnn,      'CNN 恐懼貪婪',       cnnB(d.cnn?.value));
+  card('c-put-call', d.put_call, '美國股市整體 Put/Call ratio', pcB(d.put_call?.value));
+  card('c-tx-night', d.tw_pcr, '臺指選擇權Put/Call比 (%)', twPcB(d.tw_pcr?.value));
+  card('c-foreign-oi',     d.foreign_oi,     '外資台指期未平倉淨口數', foreignOiB(d.foreign_oi?.value));
+  card('c-margin-balance', d.margin_balance, '台股融資餘額(億元)',        '');
+
+  // 流動性
+  card('c-dxy',    d.dxy,      '美元指數 DXY',   dxyB(d.dxy?.value));
+  card('c-tnx',    d.tnx,      '美債10年期',     tnxB(d.tnx?.value));
+  card('c-fed',    d.fed_rate, '聯邦基準利率',   '');
+  card('c-usdtwd', d.usdtwd,   '台幣匯率',       twdB(d.usdtwd?.value));
+  card('c-gold',   d.gold,     '黃金 COMEX',     '');
+  card('c-oil',    d.oil,      '原油 WTI',       '');
+
+  // 估值
+  card('c-erp',        d.erp,       '股票風險溢酬 ERP',  erpB(d.erp?.value));
+  card('c-forward-pe', d.forward_pe,'Forward PE (S&P)',   peB(d.forward_pe?.value));
+  card('c-shiller',    d.shiller,   'Shiller CAPE',       '');
+  card('c-put-call2',  d.put_call,  'Put/Call Ratio',     pcB(d.put_call?.value));
+  cardPct('c-buffett-tw', d.buffett_tw,'台股巴菲特指標', buffettTWB(d.buffett_tw?.value));
+  cardPct('c-buffett-us', d.buffett_us,'美股巴菲特指標', buffettUSB(d.buffett_us?.value));
+}
+
+// ── 卡片渲染 ──
+function card(id, data, lbl, badge) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const v = data?.value, c = data?.change, p = data?.pct;
+  el.innerHTML = `
+    <div class="card-lbl">${lbl}</div>
+    <div>
+      <div class="card-val ${cls(c)}">${v != null ? fmt(v) : '—'}${badge}</div>
+      ${c != null ? `<div class="card-chg ${cls(c)}">${fmtChg(c, p)}</div>` : ''}
+    </div>`;
+}
+
+function ma(id, data, lbl, spot) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const v = data?.value;
+  if (v == null) { el.innerHTML = `<div class="card-lbl">${lbl}</div><div class="card-val neu">—</div>`; return; }
+  const pct  = parseFloat(v);
+  const ma240 = spot ? (spot / (1 + pct / 100)).toFixed(0) : null;
+  el.innerHTML = `
+    <div class="card-lbl">${lbl}</div>
+    <div>
+      <div class="card-val ${pct >= 0 ? 'up' : 'dn'}">${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%${maB(pct)}</div>
+      ${ma240 ? `<div class="ma-note">240MA ≈ ${Number(ma240).toLocaleString()}</div>` : ''}
+    </div>`;
+}
+
+// ── 格式化 ──
+function fmt(v) {
+  if (v == null || v === '') return '—';
+  const n = parseFloat(v);
+  if (isNaN(n)) return String(v).replace(/[()%]/g, '');
+  if (Math.abs(n) >= 10000) return n.toLocaleString('zh-TW', {maximumFractionDigits:2});
+  if (Math.abs(n) >= 1000)  return n.toLocaleString('zh-TW', {maximumFractionDigits:2});
+  if (Math.abs(n) >= 100)   return n.toFixed(2);
+  return n.toFixed(3);
+}
+
+function fmtChg(c, p) {
+  if (c == null) return '';
+  const n  = parseFloat(c);
+  const pn = p ? parseFloat(String(p).replace(/[()%+\s]/g, '')) : null;
+  const s  = n >= 0 ? '+' : '';
+  return pn != null ? `${s}${n.toFixed(2)} (${s}${pn.toFixed(2)}%)` : `${s}${n.toFixed(2)}`;
+}
+
+function cls(c) {
+  if (c == null) return 'neu';
+  return parseFloat(c) >= 0 ? 'up' : 'dn';
+}
+
+// ── 狀態標籤 ──
+function bx(text, type) { return `<span class="bx bx-${type}">${text}</span>`; }
+function maB(p) {
+  if (p > 30) return bx('過熱','hot');
+  if (p > 10) return bx('偏熱','warm');
+  if (p > -5) return bx('正常','ok');
+  return bx('偏冷','cold');
+}
+function vixB(v) {
+  if (!v) return '';
+  const n = +v;
+  if (n > 30) return bx('極恐慌','hot');
+  if (n > 20) return bx('恐慌','warm');
+  if (n > 15) return bx('正常','ok');
+  return bx('低波','cold');
+}
+function cnnB(v) {
+  if (!v) return '';
+  const n = +v;
+  if (n >= 75) return bx('極貪婪','hot');
+  if (n >= 55) return bx('貪婪','warm');
+  if (n >= 45) return bx('中性','ok');
+  if (n >= 25) return bx('恐懼','cold');
+  return bx('極恐懼','hot');
+}
+function pcB(v) {
+  if (!v) return '';
+  const n = +v;
+  if (n > 1.2) return bx('市場恐慌','cold');
+  if (n > 0.9) return bx('偏中性','ok');
+  if (n > 0.7) return bx('偏多','warm');
+  return bx('極偏多','hot');
+}
+function twPcB(v) {
+  if (!v) return '';
+  const val = Number(v);
+  if (val > 115) return '<span class="bx bx-hot">市場樂觀</span>';
+  if (val >= 100) return '<span class="bx bx-ok">市場偏多</span>';
+  if (val >= 90) return '<span class="bx bx-warm">市場偏空</span>';
+  return '<span class="bx bx-cold">市場恐慌</span>'; 
+}
+function foreignOiB(v) {
+  if (v == null) return '';
+  const n = +v;
+  if (n <= -40000) return bx('大量空單','cold');
+  if (n < 0)        return bx('偏空','warm');
+  if (n >= 40000)   return bx('大量多單','hot');
+  return bx('偏多','ok');
+}
+function dxyB(v) {
+  if (!v) return '';
+  const n = +v;
+  if (n > 105) return bx('強勢','hot');
+  if (n > 100) return bx('偏強','warm');
+  return bx('偏弱','ok');
+}
+function tnxB(v) {
+  if (!v) return '';
+  const n = +v;
+  if (n > 4.5) return bx('高利率','hot');
+  if (n > 3.5) return bx('偏高','warm');
+  return bx('正常','ok');
+}
+function twdB(v) {
+  if (!v) return '';
+  const n = +v;
+  if (n > 33) return bx('台幣弱','hot');
+  if (n > 31) return bx('正常','ok');
+  return bx('台幣強','cold');
+}
+function cardPct(id, data, lbl, badge) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const v = data?.value;
+  const n = v != null ? parseFloat(v) : null;
+  const display = n != null ? (n * 100).toFixed(2) + '%' : '—';
+  el.innerHTML = `
+    <div class="card-lbl">${lbl}</div>
+    <div>
+      <div class="card-val sm">${display}${badge}</div>
+    </div>`;
+}
+function buffettTWB(v) {
+  if (!v) return '';
+  const n = parseFloat(v)* 100;
+  if (n > 500) return bx('泡沫','hot');
+  if (n > 400) return bx('高估','warm');
+  if (n > 300) return bx('略高','ok');
+  if (n > 200) return bx('合理','cold');
+  return bx('低估','cold');
+}
+function buffettUSB(v) {
+  if (!v) return '';
+  const n = parseFloat(v)* 100;
+  if (n > 250) return bx('泡沫','hot');
+  if (n > 200) return bx('高估','warm');
+  if (n > 150) return bx('略高','ok');
+  if (n > 100) return bx('合理','cold');
+  return bx('低估','cold');
+}
+function erpB(v) {
+  if (!v) return '';
+  const n = +v;
+  if (n > 2)  return bx('股票便宜','cold');
+  if (n > 0)  return bx('合理','ok');
+  if (n > -2) return bx('略貴','warm');
+  return bx('股票昂貴','hot');
+}
+function peB(v) {
+  if (!v) return '';
+  const n = +v;
+  if (n > 30) return bx('高估','hot');
+  if (n > 20) return bx('略高','warm');
+  if (n > 15) return bx('合理','ok');
+  return bx('低估','cold');
+}
+
+// 頁面載入時觸發
+load();
+</script>
+</body>
+</html>
