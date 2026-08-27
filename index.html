@@ -85,6 +85,14 @@ body { background:var(--bg); color:var(--text); font-family:var(--sans); font-si
   color: var(--text3); 
   text-align: left; 
 }
+.card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.card-link:hover {
+  opacity: 0.8;
+}
 .btn { 
   background: var(--bg3); 
   border: 1px solid var(--border); 
@@ -463,23 +471,26 @@ function render(d, upd) {
   // 估值
   card('c-erp',        d.erp,       '股票風險溢酬 ERP',  erpB(d.erp?.value));
   card('c-forward-pe', d.forward_pe,'Forward PE (S&P)',   peB(d.forward_pe?.value));
-  card('c-shiller',    d.shiller,   'Shiller CAPE',       '');
+  card('c-shiller', d.shiller, 'Shiller CAPE', '', 'https://www.multpl.com/shiller-pe');
   card('c-put-call2',  d.put_call,  'Put/Call Ratio',     pcB(d.put_call?.value));
   cardPct('c-buffett-tw', d.buffett_tw,'台股巴菲特指標', buffettTWB(d.buffett_tw?.value));
   cardPct('c-buffett-us', d.buffett_us,'美股巴菲特指標', buffettUSB(d.buffett_us?.value));
 }
 
 // ── 卡片渲染 ──
-function card(id, data, lbl, badge) {
+function card(id, data, lbl, badge, link) {
   const el = document.getElementById(id);
   if (!el) return;
   const v = data?.value, c = data?.change, p = data?.pct;
-  el.innerHTML = `
+  const inner = `
     <div class="card-lbl">${lbl}</div>
     <div>
       <div class="card-val ${cls(c)}">${v != null ? fmt(v) : '—'}${badge}</div>
       ${c != null ? `<div class="card-chg ${cls(c)}">${fmtChg(c, p)}</div>` : ''}
     </div>`;
+  el.innerHTML = link
+    ? `<a href="${link}" target="_blank" rel="noopener" class="card-link">${inner}</a>`
+    : inner;
 }
 
 function ma(id, data, lbl, spot) {
