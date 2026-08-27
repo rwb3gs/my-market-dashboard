@@ -469,8 +469,8 @@ function render(d, upd) {
   card('c-oil',    d.oil,      '原油 WTI',       '');
 
   // 估值
-  card('c-erp',        d.erp,       '股票風險溢酬 ERP',  erpB(d.erp?.value));
-  card('c-forward-pe', d.forward_pe,'Forward PE (S&P)',   peB(d.forward_pe?.value));
+  card('c-erp',        d.erp,       '股票風險溢酬 ERP',  erpB(d.erp?.value), 'https://en.macromicro.me/charts/88437/US-S-P-500-Earnings-Yield-S-P-500-Equity-Risk-Premium-vs-S-P-500');
+  card('c-forward-pe', d.forward_pe,'Forward PE (S&P)',   peB(d.forward_pe?.value), 'https://www.multpl.com/s-p-500-pe-ratio');
   card('c-shiller', d.shiller, 'Shiller CAPE', '', 'https://www.multpl.com/shiller-pe');
   card('c-put-call2',  d.put_call,  'Put/Call Ratio',     pcB(d.put_call?.value));
   cardPct('c-buffett-tw', d.buffett_tw,'台股巴菲特指標', buffettTWB(d.buffett_tw?.value));
