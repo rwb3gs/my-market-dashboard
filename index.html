@@ -453,8 +453,8 @@ function render(d, upd) {
   ma('c-dji-ma', d.dji_ma, '道瓊 乖離率', d.dji?.value);
 
   // 情緒
-  card('c-vix',      d.vix,      'VIX 恐慌指數',      vixB(d.vix?.value));
-  card('c-cnn',      d.cnn,      'CNN 恐懼貪婪',       cnnB(d.cnn?.value));
+  card('c-vix',      d.vix,      'VIX 恐慌指數',      vixB(d.vix?.value), 'https://tw.tradingview.com/symbols/TVC-VIX/');
+  card('c-cnn',      d.cnn,      'CNN 恐懼貪婪',       cnnB(d.cnn?.value), 'https://edition.cnn.com/markets/fear-and-greed');
   card('c-put-call', d.put_call, '美國股市整體 Put/Call ratio', pcB(d.put_call?.value));
   card('c-tx-night', d.tw_pcr, '臺指選擇權Put/Call比 (%)', twPcB(d.tw_pcr?.value));
   card('c-foreign-oi',     d.foreign_oi,     '外資台指期未平倉淨口數', foreignOiB(d.foreign_oi?.value));
