@@ -105,6 +105,31 @@ body { background:var(--bg); color:var(--text); font-family:var(--sans); font-si
   font-weight: 500; 
 }
 .btn:hover { color: var(--text); background: var(--bg); }
+.nav-links {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.nav-links a {
+  text-decoration: none;
+  color: var(--text2);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.nav-links a:hover {
+  color: var(--text);
+  background: var(--bg);
+}
 
 @media(min-width: 768px) {
   .hdr { align-items: center; }
@@ -198,6 +223,10 @@ body { background:var(--bg); color:var(--text); font-family:var(--sans); font-si
   <div class="hdr-right">
     <button class="btn" onclick="load()">↻ 更新</button>
   </div>
+</div>
+
+<div class="nav-links">
+  <a href="https://rwb3gs.github.io/my-etf/" target="_blank" rel="noopener">📊 ETF 數據中心</a>
 </div>
 
 <div id="loading" class="loading"><div class="spin"></div><span>讀取資料中…</span></div>
