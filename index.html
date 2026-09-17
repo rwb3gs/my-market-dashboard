@@ -459,20 +459,23 @@ function render(d, upd) {
 
   // 大盤快覽
   const mkts = [
-    ['twii',     '台股加權'],
-    ['tx_night', '台指期夜盤'],
-    ['sp500',    'S&P 500'],
-    ['nasdaq',   'NASDAQ'],
-    ['sox',      '費城半導體'],
-    ['dji',      '道瓊工業'],
+    ['twii',     '台股加權',    'https://tw.stock.yahoo.com/quote/%5ETWII'],
+    ['tx_night', '台指期夜盤',  'https://www.wantgoo.com/futures/wtxp&'],
+    ['sp500',    'S&P 500',    'https://finance.yahoo.com/quote/%5EGSPC'],
+    ['nasdaq',   'NASDAQ',     'https://finance.yahoo.com/quote/%5EIXIC'],
+    ['sox',      '費城半導體',  'https://finance.yahoo.com/quote/%5ESOX'],
+    ['dji',      '道瓊工業',    'https://finance.yahoo.com/quote/%5EDJI'],
   ];
-  document.getElementById('mkts').innerHTML = mkts.map(([k, lbl]) => {
+  document.getElementById('mkts').innerHTML = mkts.map(([k, lbl, link]) => {
     const v = d[k];
-    return `<div class="mc">
+    const inner = `
       <div class="mc-lbl">${lbl}</div>
       <div class="mc-val ${cls(v?.change)}">${fmt(v?.value)}</div>
       <div class="mc-chg ${cls(v?.change)}">${fmtChg(v?.change, v?.pct)}</div>
-    </div>`;
+    `;
+    return link
+      ? `<a href="${link}" target="_blank" rel="noopener" class="mc card-link">${inner}</a>`
+      : `<div class="mc">${inner}</div>`;
   }).join('');
 
   // 趨勢
