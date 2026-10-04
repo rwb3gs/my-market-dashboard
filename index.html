@@ -217,7 +217,7 @@ body { background:var(--bg); color:var(--text); font-family:var(--sans); font-si
 
 <div class="hdr">
   <div class="hdr-left">
-    <div class="hdr-title"><b>Bin</b>｜家庭投資決策系統 × 四象限市場溫度</div>
+    <div class="hdr-title"><b>Bin</b>｜投資決策系統 × 四象限市場溫度</div>
     <span class="upd" id="upd">—</span>
   </div>
   <div class="hdr-right">
@@ -228,7 +228,7 @@ body { background:var(--bg); color:var(--text); font-family:var(--sans); font-si
 <div class="nav-links">
   <a href="https://rwb3gs.github.io/my-etf/" target="_blank" rel="noopener"> ETF</a>
   <a href="https://rwb3gs.github.io/my_stock_dashboard/" target="_blank" rel="noopener"> 金融與個股</a>
-  <a href="https://rwb3gs.github.io/my-income_calculator/" target="_blank" rel="noopener">💰 股息試算</a>
+  <a href="https://rwb3gs.github.io/my-income_calculator/" target="_blank" rel="noopener"> 股息試算</a>
 </div>
 
 <div id="loading" class="loading"><div class="spin"></div><span>讀取資料中…</span></div>
@@ -407,7 +407,7 @@ async function load() {
           pct: item.change_percent && item.change_percent !== 'EMPTY' ? item.change_percent : null
         };
       }
-      if (item.updated_at) latestUpdate = item.updated_at;
+      if (item.updated_at) latestUpdate = formatUpdateTime(item.updated_at);
     });
 
     render(formattedData, latestUpdate);
@@ -417,6 +417,26 @@ async function load() {
   } catch(e) {
     document.getElementById('loading').innerHTML =
       `<div class="err">❌ 無法載入資料<br><small>${e.message}</small></div>`;
+  }
+}
+
+// 將資料庫的 ISO 時間字串簡化為「MM/dd HH:mm」（台北時間）
+function formatUpdateTime(iso) {
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    const parts = new Intl.DateTimeFormat('zh-TW', {
+      timeZone: 'Asia/Taipei',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).formatToParts(d);
+    const get = t => parts.find(p => p.type === t)?.value;
+    return `${get('month')}/${get('day')} ${get('hour')}:${get('minute')}`;
+  } catch (e) {
+    return iso;
   }
 }
 
