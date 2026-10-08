@@ -111,24 +111,35 @@ body { background:var(--bg); color:var(--text); font-family:var(--sans); font-si
   padding: 10px 16px;
   background: var(--bg2);
   border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
-.nav-links a {
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a, .nav-links .nav-tab {
+  flex: 0 0 auto;
   text-decoration: none;
   color: var(--text2);
   background: var(--bg3);
   border: 1px solid var(--border);
-  padding: 6px 14px;
+  padding: 7px 16px;
   border-radius: 20px;
   font-size: 13px;
   font-weight: 500;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;
 }
 .nav-links a:hover {
   color: var(--text);
   background: var(--bg);
+}
+.nav-links .nav-tab.active {
+  background: var(--text);
+  color: #fff;
+  border-color: var(--text);
 }
 
 @media(min-width: 768px) {
@@ -177,7 +188,7 @@ body { background:var(--bg); color:var(--text); font-family:var(--sans); font-si
 .cards.cols3 { grid-template-columns:1fr 1fr 1fr; }
 
 /* Card */
-.card { background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:9px 11px; min-height:80px; display:flex; flex-direction:column; justify-content:space-between; }
+.card { background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:9px 11px; min-height:80px; display:flex; flex-direction:column; justify-content:flex-start; }
 .card.full { grid-column:span 2; }
 .card-lbl { font-size:12px; color:var(--text2); margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .card-val { font-family:var(--mono); font-size:21px; font-weight:600; line-height:1; }
@@ -226,10 +237,12 @@ body { background:var(--bg); color:var(--text); font-family:var(--sans); font-si
 </div>
 
 <div class="nav-links">
-  <a href="https://rwb3gs.github.io/my-etf/" target="_blank" rel="noopener"> ETF</a>
-  <a href="https://rwb3gs.github.io/my_stock_dashboard/" target="_blank" rel="noopener"> 金融與個股</a>
-  <a href="https://rwb3gs.github.io/my-income_calculator/" target="_blank" rel="noopener"> 股息試算</a>
-  <a href="https://rwb3gs.github.io/my-radar/" target="_blank" rel="noopener"> 風險雷達~測試中</a>
+  <span class="nav-tab active">市場溫度</span>
+  <a href="https://rwb3gs.github.io/my-etf/" target="_blank" rel="noopener">ETF</a>
+  <a href="https://rwb3gs.github.io/my_stock_dashboard/" target="_blank" rel="noopener">金融與個股</a>
+  <a href="https://rwb3gs.github.io/my-income_calculator/" target="_blank" rel="noopener">股息試算</a>
+  <a href="https://rwb3gs.github.io/my-radar/" target="_blank" rel="noopener">風險雷達~測試中</a>
+  <!-- 新增分頁只要複製上面一行 <a> 標籤，換成新網址跟名稱即可 -->
 </div>
 
 <div id="loading" class="loading"><div class="spin"></div><span>讀取資料中…</span></div>
